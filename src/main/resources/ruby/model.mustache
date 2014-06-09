@@ -1,40 +1,44 @@
 {{#models}}
 
 {{#model}}
-class {{classname}}
-  attr_accessor {{#vars}}:{{{name}}}{{#hasMore}}, {{/hasMore}}{{/vars}}{{newline}}
-  # :internal => :external
-  def self.attribute_map
-    {
-      {{#vars}}
-      :{{{name}}} => :{{{baseName}}}{{#hasMore}},
-      {{/hasMore}}
-    {{/vars}}{{newline}}
-    }
-  end
+module Jirafe
+  class {{classname}}
+    attr_accessor {{#vars}}:{{{name}}}{{#hasMore}}, {{/hasMore}}{{/vars}}{{newline}}
+    # :internal => :external
+    def self.attribute_map
+      {
+        {{#vars}}
+        :{{{name}}} => :{{{baseName}}}{{#hasMore}},
+        {{/hasMore}}
+      {{/vars}}{{newline}}
+      }
+    end
 
-  def initialize(attributes = {})
-    return if attributes.empty?
-    # Morph attribute keys into undescored rubyish style
-    {{#vars}}
-    if self.class.attribute_map[:"{{{name}}}"]
-      {{#isContainer}}
-        if (value = attributes["{{{baseName}}}"]).is_a?(Array)
-          @{{{name}}} = value{{#complexType}}.map{ |v| {{complexType}}.new(v) }{{/complexType}}
+    def initialize(attributes = {})
+      return if attributes.empty?
+      # Morph attribute keys into undescored rubyish style
+      %w( {{#vars}}{{^isContainer}}{{{name}}} {{x}}{{/isContainer}}{{/vars}}).each do |name|
+        send "#{name}=", attributes[self.class.attribute_map[name.to_sym]]
+      end
+
+      %w( {{#vars}}{{#isContainer}}{{^complexType}}{{{name}}} {{x}}{{/complexType}}{{/isContainer}}{{/vars}}).each do |name|
+        if attributes[self.attribute_map[name.to_sym]].is_a?(Array)
+          send("#{name}=", attributes[self.class.attribute_map[name.to_sym]])
         end
-      {{/isContainer}}{{^isContainer}}
-        @{{{name}}} = attributes["{{{baseName}}}"]
-    {{/isContainer}}
-    end
-    {{/vars}}{{newline}}
-  end
+      end
 
-  def to_body
-    body = {}
-    self.class.attribute_map.each_pair do |key, value|
-      body[value] = self.send(key) unless self.send(key).nil?
+      {{#vars}}{{#isContainer}}{{#complexType}}
+      @{{{name}}} = attributes["{{{baseName}}}"].map { |v| {{complexType}}.new(v) } if attributes["{{{baseName}}}"].is_a?(Array)
+      {{/complexType}}{{/isContainer}}{{/vars}}
     end
-    body
+
+    def to_body
+      body = {}
+      self.class.attribute_map.each_pair do |key, value|
+        body[value] = self.send(key) unless self.send(key).nil?
+      end
+      body
+    end
   end
 end
 {{/model}}

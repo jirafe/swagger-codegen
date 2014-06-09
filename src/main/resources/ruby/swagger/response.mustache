@@ -1,4 +1,4 @@
-module Swagger
+module Jirafe
 
   class Response
     require 'json'
@@ -17,7 +17,7 @@ module Swagger
     def code
       raw.code
     end
-    
+
     # Account for error messages that take different forms...
     def error_message
       body['message']
@@ -33,7 +33,7 @@ module Swagger
       raw.body
     end
 
-    # `headers_hash` is a Typhoeus-specific extension of Hash, 
+    # `headers_hash` is a Typhoeus-specific extension of Hash,
     # so simplify it back into a regular old Hash.
     def headers
       h = {}
@@ -65,6 +65,6 @@ module Swagger
     def pretty_headers
       JSON.pretty_generate(headers).gsub(/\n/, '<br/>')
     end
-    
+
   end
 end

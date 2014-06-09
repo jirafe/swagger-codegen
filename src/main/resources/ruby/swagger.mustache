@@ -1,25 +1,33 @@
-require 'monkey'
-require 'swagger/configuration'
-require 'swagger/request'
-require 'swagger/response'
-require 'swagger/version'
+require 'jirafe/monkey'
+require 'jirafe/configuration'
+require 'jirafe/request'
+require 'jirafe/response'
+require 'jirafe/version'
+{{#models}}
+{{#model}}
+require 'jirafe/{{filename}}'
+{{/model}}
+{{/models}}
+{{#apis}}
+require 'jirafe/{{filename}}'
+{{/apis}}
 require 'logger'
 
-module Swagger
-    
+module Jirafe
+
   class << self
     attr_accessor :logger
-    
-    # A Swagger configuration object. Must act like a hash and return sensible
-    # values for all Swagger configuration options. See Swagger::Configuration.
+
+    # A Jirafe configuration object. Must act like a hash and return sensible
+    # values for all Jirafe configuration options. See Jirafe::Configuration.
     attr_accessor :configuration
 
     attr_accessor :resources
-    
+
     # Call this method to modify defaults in your initializers.
     #
     # @example
-    #   Swagger.configure do |config|
+    #   Jirafe.configure do |config|
     #     config.api_key = '1234567890abcdef'     # required
     #     config.username = 'wordlover'           # optional, but needed for user-related functions
     #     config.password = 'i<3words'            # optional, but needed for user-related functions
@@ -44,41 +52,41 @@ module Swagger
       configuration.base_path = "/#{configuration.base_path}".gsub(/\/+/, '/')
       configuration.base_path = "" if configuration.base_path == "/"
     end
-    
+
     def authenticated?
-      Swagger.configuration.auth_token.present?
+      Jirafe.configuration.auth_token.present?
     end
-    
+
     def de_authenticate
-      Swagger.configuration.auth_token = nil
+      Jirafe.configuration.auth_token = nil
     end
-    
+
     def authenticate
-      return if Swagger.authenticated?
-      
-      if Swagger.configuration.username.blank? || Swagger.configuration.password.blank?
+      return if Jirafe.authenticated?
+
+      if Jirafe.configuration.username.blank? || Jirafe.configuration.password.blank?
         raise ClientError, "Username and password are required to authenticate."
       end
-      
-      request = Swagger::Request.new(
-        :get, 
-        "account/authenticate/{username}", 
+
+      request = Jirafe::Request.new(
+        :get,
+        "account/authenticate/{username}",
         :params => {
-          :username => Swagger.configuration.username, 
-          :password => Swagger.configuration.password
+          :username => Jirafe.configuration.username,
+          :password => Jirafe.configuration.password
         }
       )
-      
+
       response_body = request.response.body
-      Swagger.configuration.auth_token = response_body['token']
+      Jirafe.configuration.auth_token = response_body['token']
     end
 
   end
-  
-end
 
-class ServerError < StandardError
-end
+  class ServerError < StandardError
+  end
 
-class ClientError < StandardError
+  class ClientError < StandardError
+  end
+
 end
