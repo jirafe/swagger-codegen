@@ -32,7 +32,7 @@ class APIClient {
 	 * @param string $apiKey your API key
 	 * @param string $apiServer the address of the API server
 	 */
-	function __construct($apiKey, $apiServer) {
+	function __construct($apiKey, $apiServer = 'https://event.jirafe.com/v2') {
 		$this->apiKey = $apiKey;
 		$this->apiServer = $apiServer;
 	}
@@ -62,7 +62,7 @@ class APIClient {
 			}
 		}
 		if (! $added_api_key) {
-		    $headers[] = "api_key: " . $this->apiKey;
+		    $headers[] = "Authorization: Bearer " . $this->apiKey;
 		}
 
 		if (is_object($postData) or is_array($postData)) {
